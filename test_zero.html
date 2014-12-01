@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>OCIO</title>
+    <script src="https://www.google.com/jsapi?key=ABQIAAAAEve0YHQEdqK48cdmO50nEhSPYY4fIGS11TF3fuE6rzouYeOcmRSS3CDrXfsfT41sO78FLDitztatug"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script src="js/jQuery.radmenu.min.js"></script>
+    <script type="text/javascript">
+
+      google.load('search', '1');
+
+      var imageSearch;
+	  var aImages = [];
+
+      function addPaginationLinks() {
+      
+        // To paginate search results, use the cursor function.
+        var cursor = imageSearch.cursor;
+        var curPage = cursor.currentPageIndex; // check what page the app is on
+        var pagesDiv = document.createElement('div');
+        for (var i = 0; i < cursor.pages.length; i++) {
+          var page = cursor.pages[i];
+          if (curPage == i) { 
+
+          // If we are on the current page, then don't make a link.
+            var label = document.createTextNode(' ' + page.label + ' ');
+            pagesDiv.appendChild(label);
+          } else {
+
+            // Create links to other pages using gotoPage() on the searcher.
+            var link = document.createElement('a');
+            link.href = 'javascript:imageSearch.gotoPage('+i+');';
+            link.innerHTML = page.label;
+            link.style.marginRight = '2px';
+            pagesDiv.appendChild(link);
+          }
+        }
+
+        var contentDiv = document.getElementById('content');
+        contentDiv.appendChild(pagesDiv);
+      }
+
+      function searchComplete() {
+
+        // Check that we got results
+        if (imageSearch.results && imageSearch.results.length > 0) {
+
+          // Grab our content div, clear it.
+          $("#content").html("");
+          
+          // Loop through our results, printing them to the page.
+          var results = imageSearch.results;
+		  var buf = '<div id="radial_container">\r\n\t<ul class="list">';
+
+          for (var i = 0; i < results.length; i++) {
+            // For each result write it's title and image to the screen
+            var result = results[i];
+            
+            buf += '<li class="item"><div class="my_class img'+i+'" style="background-image: url(\''+encodeURI(result.tbUrl)+'\');"></div></li>';
+			aImages.push( result.url );
+			//console.log( result.url );
+          }
+		  buf += '</ul></div>';
+		  buf += '<div id="big"></div>';
+		  $("#content").html( buf );
+		  createGallery();
+
+          // Now add links to additional pages of search results.
+          //addPaginationLinks(imageSearch);
+        }
+      }
+	
+      function OnLoad() {
+      
+        // Create an Image Search instance.
+        imageSearch = new google.search.ImageSearch();
+		imageSearch.setResultSetSize(8);
+		imageSearch.setRestriction(
+		  google.search.ImageSearch.RESTRICT_COLORFILTER,
+		  google.search.ImageSearch.COLOR_YELLOW
+		);
+		imageSearch.setRestriction(
+		  google.search.ImageSearch.RESTRICT_IMAGESIZE,
+		  google.search.ImageSearch.IMAGESIZE_LARGE
+		 );
+
+        // Set searchComplete as the callback function when a search is 
+        // complete.  The imageSearch object will have results in it.
+        imageSearch.setSearchCompleteCallback(this, searchComplete, null);
+
+        // Find me a beautiful car.
+        //imageSearch.execute("vacaciones");
+		$("#content").html("<input type='text' id='find'  /><input type='button' value='buscar' onclick='do_search()' />");
+        
+        // Include the required Google branding
+        google.search.Search.getBranding('branding');
+      }
+      google.setOnLoadCallback(OnLoad);
+	  
+	  function do_search(){
+		var key = $("#find").attr("value");
+		imageSearch.execute(key);
+	  }
+    </script>
+	<style>
+	 <style>
+    body{
+        background: #f3f3f3;
+    }
+    #radial_container {
+        position:relative;
+        margin: 0 auto;
+        top: 80px;
+        height: 20px;
+        width: 20px;
+    }
+    .radial_div_item {
+    }
+    .radial_div_item.active {
+        z-index: 100;
+    }
+    .my_class {
+        cursor: pointer;
+        height: 75px;
+        width: 75px;
+        border: 5px solid #333;
+        -moz-border-radius: 45px;
+        -webkit-border-radius: 45px;
+        border-radius: 45px;
+        -webkit-box-shadow: 1px 1px 10px rgba(0,0,0,.5);
+        -moz-box-shadow: 1px 1px 10px rgba(0,0,0,.5);
+        box-shadow: 1px 1px 10px rgba(0,0,0,.5);
+        position: relative;
+        text-align: center;
+        font-size: 12px;
+        font-weight: bold;
+        font-family: "Arial";
+    }
+    .my_class:hover {
+        border-color: #0066cc;
+    }
+    .my_class:active {
+        -webkit-box-shadow: 1px 1px 5px rgba(0,0,0,.5);
+        -moz-box-shadow: 1px 5px 1px rgba(0,0,0,.5);
+        box-shadow: 1px 1px 5px rgba(0,0,0,.5);
+        top: 2px;
+        border-color: #e3e3e3;
+    }
+    .selected {
+        border-color: #0066cc;
+    }
+
+    #big {
+        position: relative;
+        border: 5px solid #0066cc;
+        width: 300px;
+        height: 300px;
+        -moz-border-radius: 200px;
+        -webkit-border-radius: 200px;
+        border-radius: 200px;
+        -webkit-box-shadow: 1px 1px 10px rgba(0,0,0,.5);
+        -moz-box-shadow: 1px 1px 10px rgba(0,0,0,.5);
+        box-shadow: 1px 1px 10px rgba(0,0,0,.5);
+    }
+
+    </style>
+	<script type="text/javascript">
+    function createGallery() {
+
+        var posc = $("#radial_container").position();
+        var left = $(window).width() / 2;
+
+        if ($.browser.opera) {
+            $("#big").css({"left": left - 122, "top": posc.top - 13});
+        } else {
+            $("#big").css({"left": left - 122, "top": posc.top + 3});
+        }
+
+        jQuery("#radial_container").radmenu({
+            listClass: 'list',
+            itemClass: 'item',
+            radius: 220,
+            animSpeed:800,
+            centerX: 0,
+            centerY: 150,
+            selectEvent: "click",
+            onSelect: function($selected) {
+                var imgindex = $selected.index();
+                $(".my_class").removeClass("selected");
+                $(".img"+imgindex).addClass("selected");
+                $("body").css("background-image", "url('"+aImages[imgindex]+"')");
+				console.log( aImages[imgindex] );
+            },
+            angleOffset: 0
+        });
+
+        jQuery("#radial_container").radmenu("show");
+    };
+    </script>
+
+  </head>
+  <body style="font-family: Arial;border: 0 none;">
+    <div id="branding"  style="float: left;"></div><br />
+    <div id="content">Loading...</div>
+  </body>
+</html>
