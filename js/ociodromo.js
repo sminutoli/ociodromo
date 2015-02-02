@@ -1,7 +1,5 @@
 $(window).load( init );
 
-var client_id = "e9eb27d0a4d24bb3dce4db6cdfe8a9a6";
-var flickr_id = "bb26164d9b12f118fb1fcc96fadde952";
 var aAudio; //array de audios
 var aImgs; //array de fotos
 var autocheckID;
@@ -48,7 +46,10 @@ function searchAudio( tag ){
 	$("#audioConsole").hide(0);
 	$("#audioLoading").show(0);
 	$.ajax({
-		  url: "http://api.soundcloud.com/tracks.json?client_id="+client_id+"&q="+tag+"&offset="+ Math.floor( Math.random()*100 ),
+		  url: 'index.php',
+		  data: {
+		  	soundcloud_tag: tag
+		  },
 		  success: audio_loaded
 		});
 }
@@ -56,13 +57,13 @@ function audio_loaded(e){
 	$("#audioConsole").show(0);
 	$("#audioLoading").hide(0);
 	aAudio = e;
-	if( aAudio.length > 1000 ) aAudio = eval(e);
+	if( aAudio instanceof Array === false ) aAudio = eval(e);
 	getRandomAudio();
 }
 function getRandomAudio(){
 	var nSong = Math.floor( Math.random()*aAudio.length + 1 );
 	var theSong = aAudio[ nSong ];
-	document.getElementById("audio").src = theSong.stream_url+"?client_id="+client_id;
+	document.getElementById("audio").src = theSong.stream_url_parsed;
 	document.getElementById("audio").play();
 	//console.log( theSong );
 	$("#song_title").html( theSong.title );
@@ -76,37 +77,30 @@ function searchImg( tag ){
 	//console.log( "http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=29f1c5a736945a7df372f75c9c5912c8&tags=amarillo%2C+"+tag+"&format=json&nojsoncallback=1&auth_token=72157629076416151-9da82d93dd4a7a2c&api_sig=1981424fcf875d774a029d21057608e3" );
 	$("#imgContainer").empty();
 	$.ajax({
-		  url: "http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key="+flickr_id+"&tags="+tag+"&format=json&nojsoncallback=1",
-		  success: imgs_loaded
+		  url: 'index.php',
+		  data: {
+		  	flickr_tag: tag
+		  },
+		  success: imgs_loaded,
+		  error: function(e){ debugger; }
 		});
 }
 function imgs_loaded(e){
 	//console.log(e.photos.photo);
 	aImgs = [];
-	try {
-	    aImgs = eval( e.substring( e.indexOf("["), e.lastIndexOf("]")+1 ) );
-	} catch( error ){
-	    aImgs = e.photos.photo;
-	    }
-	for( var i=0; i < 20; i++){
-		getRandomImg();
-	}
-
+	aImgs = e.items;
+	getRandomImg();
 }
 
 
 function getRandomImg(){
-	var nImg = Math.floor( Math.random()*aImgs.length + 1 );
-	var theImg = aImgs[ nImg ];
-	if( !theImg || !theImg.farm ) getRandomImg();
-	aImgs.splice( nImg, 1 );
-	//console.log( theImg );
-	try {
-		var src = "http://farm"+theImg.farm+".staticflickr.com/"+theImg.server+"/"+theImg.id+"_"+theImg.secret+"_m.jpg"
-		$("#imgContainer").append( "<a href='http://www.flickr.com/photos/"+theImg.owner+"/"+theImg.id+"' target='_blank'><img src='"+src+"' title='"+theImg.title+"' height='100px' /></a>");
-	} catch (e){
-		getRandomImg();
-	}
+	aImgs.sort(function(){
+		return Math.random() > 0.5;
+	});
+	aImgs.forEach(function(theImg){
+		var src = theImg.media.m || theImg.media.s || theImg.media.b;
+		$("#imgContainer").append( "<a href='"+theImg.link+"' target='_blank'><img src='"+src+"' title='"+theImg.title+"' height='100px' /></a>");
+	});
 }
 
 function saveWord(word){

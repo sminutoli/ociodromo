@@ -1,12 +1,35 @@
 <?php
 	require_once("classes/DB.class.php");
-	header('Content-type: text/html; charset=utf-8');
 	
+	if( $_GET['soundcloud_tag'] ){
+		$client_id = "e9eb27d0a4d24bb3dce4db6cdfe8a9a6";
+		$url = "http://api.soundcloud.com/tracks.json?client_id=$client_id&q=$_GET[soundcloud_tag]&offset=".rand(0,100);
+		$response = file_get_contents($url);
+		$obj = json_decode($response);
+		foreach($obj as $snd){
+			$snd->stream_url_parsed = $snd->stream_url."?client_id=$client_id";
+		}
+		$response = json_encode($obj);
+		header('Content-type: application/json');
+		die( $response );
+	}
+
+	if( $_GET['flickr_tag'] ){
+		$flickrUrl = 'https://api.flickr.com/services/feeds/photos_public.gne';
+		$flickrUrl .= '?format=json&nojsoncallback=1&tags='.$_GET['flickr_tag'];
+		$response = file_get_contents($flickrUrl);
+		//we clean the response...
+		$response = str_replace("\\'", "'", $response);
+		header('Content-type: application/json');
+		die( $response );
+	}
+
 	if( $_GET['autocheck'] ){
 		$words = DB::getDB()->getWords();
 		foreach( $words as $w ){
 			$buffer[] = $w['tag'];
 		}
+		header('Content-type: application/json');
 		die( json_encode( $buffer ) );
 	}
 	
@@ -21,8 +44,11 @@
 			if($check) $word = $_GET["word"];
 			else $word = "";
 		}
+		header('Content-type: text/html; charset=utf-8');
 		die( $word );
 	}
+
+	header('Content-type: text/html; charset=utf-8');
 	
 	$words = DB::getDB()->getWords();
 	$wordsHTML = "";
