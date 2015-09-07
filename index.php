@@ -1,4 +1,5 @@
 <?php
+	error_reporting(0);
 	require_once("classes/DB.class.php");
 	
 	if( $_GET['soundcloud_tag'] ){
